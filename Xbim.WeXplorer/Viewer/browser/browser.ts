@@ -562,7 +562,7 @@ load (source) {
         fReader.onloadend = function () {
             if (fReader.result) {
                 //set data buffer for next processing
-                var data = JSON.parse(fReader.result);
+                var data = JSON.parse(<string>fReader.result);
 
                 //set right utils according to the data type
                 var uk = typeof (data.FacilityDefaultLinearUnit) === "undefined";
