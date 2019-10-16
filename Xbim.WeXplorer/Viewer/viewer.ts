@@ -113,6 +113,11 @@ export class Viewer {
         */
         this.highlightingColour = [255, 173, 33, 255];
         /**
+        * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for extra highlighted elements. You can change this value at any time with instant effect.
+        * @member {Number[]} Viewer#extraHighlightingColour
+        */
+        this.extraHighlightingColour = [255, 173, 33, 255];
+        /**
         * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
         * @member {Number[]} Viewer#lightA
         */
@@ -136,6 +141,21 @@ export class Viewer {
         * @member {String} Viewer#renderingMode
         */
         this.renderingMode = RenderingMode.NORMAL;
+        /**
+		* When focusing on an entity, this method will reduce the zoom distance relational to the size of the model.
+		* @member {Number} xViewer#autoZoomRelationalDistance
+		*/
+        this.autoZoomRelationalDistance = 0;
+        /**
+         * The speed at which you scroll into the model when using the mouse wheel
+         * @member {Number} xViewer#scrollSpeed
+         */
+        this.scrollSpeed = 1;
+        /**
+         * The speed at which you pan across the model
+         * @member {Number} xViewer#panSpeed
+         */
+        this.panSpeed = 1;
         /** 
         * Clipping plane [a, b, c, d] defined as normal equation of the plane ax + by + cz + d = 0. [0,0,0,0] is for no clipping plane.
         * @member {Number[]} Viewer#clippingPlaneA
@@ -192,7 +212,7 @@ export class Viewer {
         this._lastStates = {};
         this._visualStateAttributes = [
             'perspectiveCamera', 'orthogonalCamera', 'camera', 'background', 'lightA', 'lightB',
-            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour',
+            'renderingMode', '_clippingA', '_clippingB', 'mvMatrix', '_pMatrix', '_distance', '_origin', 'highlightingColour', 'extraHighlightingColour',
             '_numberOfActiveModels', "_width", "_height"
         ];
         this._stylingChanged = true;
@@ -232,6 +252,8 @@ export class Viewer {
         this._initAttributesAndUniforms();
         //initialize mouse events to capture user interaction
         this._initMouseEvents();
+        //initialize keyboard events to capture user interaction
+        this._initKeyboardEvents();
         //initialize touch events to capute user interaction on touch devices
         this._initTouchNavigationEvents();
         this._initTouchTapEvents();
@@ -268,7 +290,8 @@ export class Viewer {
     private _stylingChanged: boolean;
     private _handles: ModelHandle[];
     public highlightingColour: number[];
-    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'none';
+    public extraHighlightingColour: number[];
+    public navigationMode: 'pan' | 'zoom' | 'orbit' | 'fixed-orbit' | 'free-orbit' | 'fly' | 'none';
     private _userAction: boolean;
     public _shaderProgram: WebGLProgram;
     public _origin: number[];
@@ -287,6 +310,7 @@ export class Viewer {
     private _meterUniformPointer: WebGLUniformLocation;
     private _renderingModeUniformPointer: WebGLUniformLocation;
     private _highlightingColourUniformPointer: WebGLUniformLocation;
+    private _extraHighlightingColourUniformPointer: WebGLUniformLocation;
     private _stateStyleSamplerUniform: WebGLUniformLocation;
 
 
@@ -295,6 +319,9 @@ export class Viewer {
     private _lastStates: {[id: string] : string};
     private _visualStateAttributes: string[];
     public renderingMode: RenderingMode;
+    public autoZoomRelationalDistance: number;
+    public scrollSpeed: number;
+    public panSpeed: number;
     private _clippingPlaneA: number[];
     private _clippingA: boolean;
     private _clippingPlaneB: number[];
@@ -903,6 +930,7 @@ export class Viewer {
         this._meterUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uMeter');
         this._renderingModeUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uRenderingMode');
         this._highlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uHighlightColour');
+        this._extraHighlightingColourUniformPointer = gl.getUniformLocation(this._shaderProgram, 'uExtraHighlightColour');
         this._stateStyleSamplerUniform = gl.getUniformLocation(this._shaderProgram, 'uStateStyleSampler');
 
         this._pointers = new ModelPointers(gl, this._shaderProgram);
@@ -1009,6 +1037,10 @@ export class Viewer {
 
             if (viewer.navigationMode === 'none') {
                 return;
+            }
+
+            if (!mouseDown && document.activeElement === viewer._canvas && viewer.navigationMode === 'fly') {
+                button = 'none';
             }
 
             var newX = event.clientX;
@@ -1148,7 +1180,7 @@ export class Viewer {
                 lastTouchY_1 = event.touches[0].clientY;
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
-                this.navigate('free-orbit', deltaX, deltaY);
+                this.navigate('orbit', deltaX, deltaY);
             } else if (event.touches.length === 2) {
                 // touch move with two fingers -> zoom
                 var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
@@ -1195,6 +1227,110 @@ export class Viewer {
         this._canvas.addEventListener('touchstart', (event) => handleTouchStart(event), true);
         this._canvas.addEventListener('touchmove', (event) => handleTouchMove(event), true);
     }
+
+    private _initKeyboardEvents = function () {
+        var viewer = this;
+        var keysDown = [];
+        var keysByCode = {
+            87: 'W',
+            83: 'S',
+            65: 'A',
+            68: 'D',
+            81: 'Q',
+            69: 'E',
+            82: 'R',
+            67: 'C',
+            33: 'PageUp',
+            34: 'PageDown',
+            38: 'Up',
+            40: 'Down',
+            37: 'Left',
+            39: 'Right',
+            18: 'Alt',
+            32: 'Space'
+        };
+        var watchedKeys = Object.keys(keysByCode);
+        var keysByText = {};
+        for (let i = 0, c = watchedKeys.length; i < c; i++) {
+            keysByText[keysByCode[watchedKeys[i]]] = watchedKeys[i];
+        }
+        function keyIsDown(key) {
+            var args = Array.prototype.slice.call(arguments);
+            for (var i = 0, c = args.length; i < c; i++) {
+                var key = args[i];
+                if (typeof key === "number" && keysDown.indexOf('' + key) > -1) return true;
+                else if (keysDown.indexOf('' + keysByText[key]) > -1) return true;
+            }
+            return false;
+        }
+        function processPressedKeys() {
+            if (keysDown.length > 0) {
+                var lookLeft = keyIsDown('Q');
+                var lookRight = keyIsDown('E');
+                var lookUp = keyIsDown('R') || keyIsDown('PageUp');
+                var lookDown = keyIsDown('C') || keyIsDown('PageDown');
+                var forward = keyIsDown('W') || keyIsDown('Up');
+                var left = keyIsDown('A') || keyIsDown('Left');
+                var right = keyIsDown('D') || keyIsDown('Right');
+                var back = keyIsDown('S') || keyIsDown('Down');
+                var up = keyIsDown('Space');
+                var down = keyIsDown('Alt');
+                if (forward) {
+                    viewer.navigate('zoom', 0.2 * viewer.scrollSpeed, 0.2 * viewer.scrollSpeed);
+                }
+                else if (back) {
+                    viewer.navigate('zoom', -0.2 * viewer.scrollSpeed, -0.2 * viewer.scrollSpeed);
+                }
+                if (left) {
+                    viewer.navigate('pan', 5 * viewer.panSpeed, 0);
+                }
+                else if (right) {
+                    viewer.navigate('pan', -5 * viewer.panSpeed, 0);
+                }
+                if (up) {
+                    viewer.navigate('pan', 0, 5 * viewer.panSpeed);
+                }
+                else if (down) {
+                    viewer.navigate('pan', 0, -5 * viewer.panSpeed);
+                }
+                if (lookLeft) {
+                    viewer.navigate('orbit', -3, 0);
+                }
+                else if (lookRight) {
+                    viewer.navigate('orbit', 3, 0);
+                }
+                if (lookUp) {
+                    viewer.navigate('orbit', 0, -3);
+                }
+                else if (lookDown) {
+                    viewer.navigate('orbit', 0, 3);
+                }
+            }
+            setTimeout(processPressedKeys, 20);
+        }
+        function handleKeyUp(event) {
+            if (viewer.navigationMode === 'fly' && watchedKeys.indexOf('' + event.keyCode) > -1) {
+                var key = '' + event.keyCode;
+                var keyDownLoc = keysDown.indexOf(key);
+                if (keyDownLoc > -1) keysDown.splice(keyDownLoc, 1);
+                event.preventDefault();
+                return false;
+            }
+        }
+        function handleKeyDown(event) {
+            if (viewer.navigationMode === 'fly' && watchedKeys.indexOf('' + event.keyCode) > -1) {
+                var key = '' + event.keyCode;
+                if (keysDown.indexOf(key) === -1) keysDown.push(key);
+                event.preventDefault();
+                return false;
+            }
+        }
+        //attach keyboard event callbacks
+        viewer._canvas.setAttribute("tabindex", -1);
+        viewer._canvas.addEventListener('keydown', handleKeyDown, true);
+        viewer._canvas.addEventListener('keyup', handleKeyUp, true);
+        processPressedKeys();
+    };
 
     private _initTouchTapEvents() {
         var touchDown = false;
@@ -1333,7 +1469,8 @@ export class Viewer {
                 mat4.translate(transform, transform, [0, 0, deltaX * distance / 20]);
                 mat4.translate(transform, transform, [0, 0, deltaY * distance / 20]);
                 break;
-
+            case 'spin':
+                return this.navigate('orbit', deltaX * -1.2, deltaY * -1.2);
             default:
                 break;
         }
@@ -1441,6 +1578,16 @@ export class Viewer {
                     this.highlightingColour[1] / 255.0,
                     this.highlightingColour[2] / 255.0,
                     this.highlightingColour[3] / 255.0
+                ]));
+
+        //update extra highlighting colour
+        gl.uniform4fv(this._extraHighlightingColourUniformPointer,
+            new Float32Array(
+                [
+                    this.extraHighlightingColour[0] / 255.0,
+                    this.extraHighlightingColour[1] / 255.0,
+                    this.extraHighlightingColour[2] / 255.0,
+                    this.extraHighlightingColour[3] / 255.0
                 ]));
 
         gl.uniform1i(this._renderingModeUniformPointer, this.renderingMode);
@@ -1584,11 +1731,9 @@ export class Viewer {
                     [origin[0] * -1.0, origin[1] * +1.0, (origin[2] + distance) * -1]);
                 var rotationY = mat4.rotateY(mat4.create(), toOrigin, Math.PI);
                 var rotationZ = mat4.rotateZ(mat4.create(), rotationY, Math.PI);
-                this
-                    .mvMatrix = rotationZ;
+                this.mvMatrix = rotationZ;
                 // mat4.translate(mat4.create(), rotationZ, [0, 0, -1.0 * distance]);
                 return;
-
             case 'front':
                 camera = [origin[0], origin[1] - distance, origin[2]];
                 break;
@@ -1600,6 +1745,20 @@ export class Viewer {
                 break;
             case 'right':
                 camera = [origin[0] + distance, origin[1], origin[2]];
+                break;
+            case 'top_right_front':
+                var dir = vec3.fromValues(1, -1, 1);
+                distance *= 1.3;
+                dir = vec3.normalize(vec3.create(), dir);
+                var shift = vec3.scale(vec3.create(), dir, distance);
+                camera = [origin[0] + shift[0], origin[1] + shift[1], origin[2] + shift[2]];
+                break;
+            case 'top_left_front':
+                var dir = vec3.fromValues(-1, -1, 1);
+                distance *= 1.3;
+                dir = vec3.normalize(vec3.create(), dir);
+                var shift = vec3.scale(vec3.create(), dir, distance);
+                camera = [origin[0] + shift[0], origin[1] + shift[1], origin[2] + shift[2]];
                 break;
             default:
                 break;
@@ -1929,6 +2088,7 @@ export class Viewer {
 
         //create SVG overlay
         var svg = document.createElementNS(ns, 'svg') as SVGElement;
+        svg.id = 'viewerSVGOverlay'
         //document.body.appendChild(svg);
 
         var cRect = getOffsetRect(this._canvas);
@@ -2172,7 +2332,7 @@ export class Viewer {
     public set clippingPlaneB(plane: number[]) {
         this._clippingPlaneB = plane;
         this._clippingB = plane != null;
-        if (this._clippingA) {
+        if (this._clippingB) {
             this.fire('clipped', {});
         } else {
 
@@ -2181,7 +2341,7 @@ export class Viewer {
     }
 
     public get clippingPlaneB(): number[] {
-        return this._clippingPlaneA;
+        return this._clippingPlaneB;
     }
 }
 

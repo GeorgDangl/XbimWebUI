@@ -11,6 +11,7 @@ var State;
     State[State["HIDDEN"] = 254] = "HIDDEN";
     State[State["HIGHLIGHTED"] = 253] = "HIGHLIGHTED";
     State[State["XRAYVISIBLE"] = 252] = "XRAYVISIBLE";
+    State[State["EXTRAHIGHLIGHTED"] = 251] = "EXTRAHIGHLIGHTED";
     State[State["UNSTYLED"] = 225] = "UNSTYLED";
 })(State = exports.State || (exports.State = {}));
 //# sourceMappingURL=state.js.map
