@@ -116,7 +116,7 @@ export class Viewer {
         * Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for extra highlighted elements. You can change this value at any time with instant effect.
         * @member {Number[]} Viewer#extraHighlightingColour
         */
-        this.extraHighlightingColour = [255, 173, 33, 255];
+        this.extraHighlightingColour = [255, 0, 0, 255];
         /**
         * Array of four floats. It represents Light A's position <strong>XYZ</strong> and intensity <strong>I</strong> as [X, Y, Z, I]. Intensity should be in range 0.0 - 1.0.
         * @member {Number[]} Viewer#lightA
