@@ -2088,8 +2088,10 @@ export class Viewer {
 
         //create SVG overlay
         var svg = document.createElementNS(ns, 'svg') as SVGElement;
-        svg.id = 'viewerSVGOverlay'
-        //document.body.appendChild(svg);
+        if (this._canvas.parentNode) {
+            this._canvas.parentNode.insertBefore(svg, this._canvas.nextSibling);
+        }
+        else document.body.appendChild(svg);
 
         var cRect = getOffsetRect(this._canvas);
 
