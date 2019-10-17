@@ -1180,7 +1180,7 @@ export class Viewer {
                 lastTouchY_1 = event.touches[0].clientY;
                 // force-setting navigation mode to 'free-orbit' currently for touch navigation since regular orbit
                 // feels awkward and un-intuitive on touch devices
-                this.navigate('orbit', deltaX, deltaY);
+                this.navigate('free-orbit', deltaX, deltaY);
             } else if (event.touches.length === 2) {
                 // touch move with two fingers -> zoom
                 var distanceBefore = Math.sqrt((lastTouchX_1 - lastTouchX_2) * (lastTouchX_1 - lastTouchX_2) +
