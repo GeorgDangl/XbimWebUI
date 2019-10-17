@@ -32,5 +32,5 @@ export declare enum NodeType {
     TYPE = 1,
     PRODUCT = 2,
     SHAPE = 3,
-    NOTDEFINED = 4,
+    NOTDEFINED = 4
 }

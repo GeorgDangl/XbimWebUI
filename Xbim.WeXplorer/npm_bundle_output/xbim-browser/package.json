@@ -1,6 +1,6 @@
 {
   "name": "@dangl/xbim-browser",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "xbim-browser.js",
   "typings": "xbim-browser.d.ts",
   "repository": "https://github.com/xBimTeam/XbimWebUI"

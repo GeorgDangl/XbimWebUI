@@ -6,7 +6,7 @@ var attribute_dictionary_1 = require("./attribute-dictionary");
 var visual_assignment_set_1 = require("./visual-assignment-set");
 var visual_attribute_1 = require("./visual-attribute");
 var visual_property_1 = require("./visual-property");
-var CobieUkUtils = (function () {
+var CobieUkUtils = /** @class */ (function () {
     function CobieUkUtils(lang, culture) {
         this._contacts = [];
         this.settings = {
@@ -145,11 +145,11 @@ var CobieUkUtils = (function () {
                 continue;
             for (var ki in keys) {
                 var key = keys[ki];
-                for (var i = 0; i < facility.length; i++) {
+                for (var i = 0; i < facility.length; i++) { //facilities (always 1)
                     var f = facility[i];
-                    for (var j = 0; j < f.children.length; j++) {
+                    for (var j = 0; j < f.children.length; j++) { //floors
                         var floor = f.children[j];
-                        for (var k = 0; k < floor.children.length; k++) {
+                        for (var k = 0; k < floor.children.length; k++) { //spaces
                             var space = floor.children[k];
                             if (space.name != key.Name)
                                 continue;

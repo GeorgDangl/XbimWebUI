@@ -476,6 +476,76 @@ in the context of specified canvas. Any other argument will throw exception.</p>
         
             
 <dt>
+    <h4 class="name" id="extraHighlightingColour"><span class="type-signature"></span>extraHighlightingColour<span class="type-signature"> :Array.&lt;Number></span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Array of four integers between 0 and 255 representing RGBA colour components. This defines colour for extra highlighted elements. You can change this value at any time with instant effect.</p>
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Array.&lt;Number></span>
+
+
+            </li>
+        </ul>
+    
+
+    
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
     <h4 class="name" id="highlightingColour"><span class="type-signature"></span>highlightingColour<span class="type-signature"> :Array.&lt;Number></span></h4>
 
     
@@ -1937,7 +2007,7 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag)</span><span class="type-signature"></span></h4>
 
         
     
@@ -1946,11 +2016,10 @@ your custom colour which you have defined in <a href="Viewer.html#defineStyle">d
 
     
     <div class="description">
-        <p>This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
-Region extend is determined based on the region of the model
-Default view if 'front'. If you want to define different view you have to set it up in handler of <a href="Viewer.html#event:loaded">loaded</a> event. <br>
+        <p>This method uses WebWorker if available to load the model into this viewer.
+Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
 You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
-visualization itself but would cause unexpected user interaction (picking, zooming, ...)</p>
+visualization itself but would cause unexpected user interaction (picking, zooming, ...).</p>
     </div>
     
 
@@ -1982,6 +2051,29 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>loaderUrl</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
+        </tr>
+
     
 
         <tr>
@@ -2104,7 +2196,7 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     
         
 
-        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(loaderUrl, model, tag)</span><span class="type-signature"></span></h4>
+        <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(model, tag)</span><span class="type-signature"></span></h4>
 
         
     
@@ -2113,10 +2205,11 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
 
     
     <div class="description">
-        <p>This method uses WebWorker if available to load the model into this viewer.
-Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+        <p>This method is used to load model data into viewer. Model has to be either URL to wexBIM file or Blob or File representing wexBIM file binary data. Any other type of argument will throw an exception.
+Region extend is determined based on the region of the model
+Default view if 'front'. If you want to define different view you have to set it up in handler of <a href="Viewer.html#event:loaded">loaded</a> event. <br>
 You can load more than one model if they occupy the same space, use the same scale and have unique product IDs. Duplicated IDs won't affect
-visualization itself but would cause unexpected user interaction (picking, zooming, ...).</p>
+visualization itself but would cause unexpected user interaction (picking, zooming, ...)</p>
     </div>
     
 
@@ -2148,29 +2241,6 @@ visualization itself but would cause unexpected user interaction (picking, zoomi
     </thead>
 
     <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>loaderUrl</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Url of the 'xbim-geometry-loader.js' script which will be called as a worker</p></td>
-        </tr>
-
     
 
         <tr>
@@ -5693,7 +5763,7 @@ This ID can later be used to unload or temporarily stop the model.</p>
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0</a> on Fri May 05 2017 10:30:44 GMT+0200 (W. Europe Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu Oct 17 2019 18:44:20 GMT+0200 (GMT+02:00)
 </footer>
 
 <script> prettyPrint(); </script>

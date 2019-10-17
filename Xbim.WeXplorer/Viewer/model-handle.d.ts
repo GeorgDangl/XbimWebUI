@@ -34,7 +34,7 @@ export declare class ModelHandle {
     getProductMaps(ids: number[]): ProductMap[];
     unload(): void;
     feedGPU(): void;
-    private bufferData(pointer, data);
+    private bufferData;
     static bufferTexture(gl: WebGLRenderingContext, pointer: WebGLTexture, data: any, numberOfComponents?: number): number;
     getState(id: number): State;
     getStyle(id: number): number;

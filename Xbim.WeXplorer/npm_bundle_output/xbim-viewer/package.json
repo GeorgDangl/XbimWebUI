@@ -1,6 +1,6 @@
 {
   "name": "@dangl/xbim-viewer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "xbim-viewer.js",
   "typings": "xbim-viewer.d.ts",
   "repository": "https://github.com/xBimTeam/XbimWebUI"
